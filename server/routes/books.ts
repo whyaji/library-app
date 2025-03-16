@@ -47,6 +47,9 @@ export const booksRoute = new Hono()
   .get('/', (c) => {
     return c.json({ books: fakeBooks });
   })
+  .get('/total', (c) => {
+    return c.json({ total: fakeBooks.length });
+  })
   .post('/', zValidator('json', createPostSchema), (c) => {
     const book = c.req.valid('json');
     const id = fakeBooks.length + 1;
