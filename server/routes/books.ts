@@ -2,6 +2,8 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
+import authMiddleware from '../middleware/jwt.js';
+
 const bookSchema = z.object({
   id: z.number().int().positive(),
   title: z.string().min(3),
@@ -47,6 +49,8 @@ const fakeBooks: Book[] = [
 ];
 
 export const booksRoute = new Hono()
+  // use authMiddleware to protect routes
+  .use(authMiddleware)
   .get('/', (c) => {
     // params: search (string), page (number), limit (number)
     const search = c.req.param('search');
