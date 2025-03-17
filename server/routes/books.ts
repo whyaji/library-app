@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import authMiddleware from '../middleware/jwt.js';
 
-const bookSchema = z.object({
+const bookSchemaZod = z.object({
   id: z.number().int().positive(),
   title: z.string().min(3),
   category: z.string().min(3),
@@ -17,9 +17,9 @@ const bookSchema = z.object({
   notes: z.string().nullable(),
 });
 
-const createPostSchema = bookSchema.omit({ id: true });
+const createPostSchema = bookSchemaZod.omit({ id: true });
 
-type Book = z.infer<typeof bookSchema>;
+type Book = z.infer<typeof bookSchemaZod>;
 
 const fakeBooks: Book[] = [
   {
@@ -89,7 +89,7 @@ export const booksRoute = new Hono()
     fakeBooks.splice(index, 1);
     return c.json({ message: 'Book deleted' });
   })
-  .put('/:id{[0-9]+}', zValidator('json', bookSchema), (c) => {
+  .put('/:id{[0-9]+}', zValidator('json', bookSchemaZod), (c) => {
     const id = parseInt(c.req.param('id'));
     const book = c.req.valid('json');
     const index = fakeBooks.findIndex((b) => b.id === id);

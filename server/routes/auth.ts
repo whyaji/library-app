@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sign } from 'hono/jwt';
+import { deleteCookie } from 'hono/cookie';
 import { z } from 'zod';
 
 import { db } from '../db/database.js';
@@ -45,7 +46,7 @@ export const authRoute = new Hono()
       // Generate JWT
       const token = await sign({ userId: user[0].id, email: user[0].email }, JWT_SECRET);
 
-      return c.json({ token });
+      return c.json({ data: { token } });
     } catch (error) {
       logger.error('Error during sign-in:', error);
       return c.json({ message: 'Internal server error.' }, 500);
@@ -87,9 +88,13 @@ export const authRoute = new Hono()
         return c.json({ message: 'User not found.' }, 404);
       }
 
-      return c.json({ message: 'Welcome to your profile!', user: user[0] });
+      return c.json({ data: user[0] });
     } catch (error) {
       logger.error('Error fetching profile:', error);
       return c.json({ message: 'Internal server error.' }, 500);
     }
+  })
+  .post('/logout', authMiddleware, async (c) => {
+    deleteCookie(c, 'auth_token');
+    return c.json({ message: 'Logout successful.' });
   });

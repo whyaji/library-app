@@ -3,9 +3,9 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import api from '@/lib/api';
+import api from '@/lib/api/api';
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute('/_authenticated/')({
   component: Index,
 });
 
@@ -16,7 +16,10 @@ async function getTotalBooks() {
 }
 
 function Index() {
-  const { isPending, error, data } = useQuery({ queryKey: ['get-total-books'], queryFn: getTotalBooks });
+  const { isPending, error, data } = useQuery({
+    queryKey: ['get-total-books'],
+    queryFn: getTotalBooks,
+  });
 
   if (error) {
     return <div>Error: {error.message}</div>;
@@ -26,7 +29,9 @@ function Index() {
     <div className="w-[350px] m-auto mt-6">
       <Card>
         <CardHeader>Total Books</CardHeader>
-        <CardContent className="text-xl font-bold">{isPending ? <Skeleton className="h-5" /> : data?.total}</CardContent>
+        <CardContent className="text-xl font-bold">
+          {isPending ? <Skeleton className="h-5" /> : data?.total}
+        </CardContent>
       </Card>
     </div>
   );

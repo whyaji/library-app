@@ -1,28 +1,17 @@
-import type { AnyFieldApi } from '@tanstack/react-form';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { FieldInfo } from '@/components/ui/field-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import api from '@/lib/api';
+import api from '@/lib/api/api';
 
-export const Route = createFileRoute('/add-book')({
+export const Route = createFileRoute('/_authenticated/add-book')({
   component: AddBook,
 });
-
-function FieldInfo({ field }: { readonly field: AnyFieldApi }) {
-  return (
-    <>
-      {field.state.meta.isTouched && field.state.meta.errors.length ? (
-        <em>{field.state.meta.errors.join(', ')}</em>
-      ) : null}
-      {field.state.meta.isValidating ? 'Validating...' : null}
-    </>
-  );
-}
 
 function AddBook() {
   const navigate = useNavigate();

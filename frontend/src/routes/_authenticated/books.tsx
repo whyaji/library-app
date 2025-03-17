@@ -29,21 +29,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import api from '@/lib/api';
+import { getBooks } from '@/lib/api/bookApi';
 
-export const Route = createFileRoute('/books')({
+export const Route = createFileRoute('/_authenticated/books')({
   component: Books,
 });
-
-async function getBooks(search: string, page: number, limit: number) {
-  const res = await api.books.$get({
-    search,
-    page,
-    limit,
-  });
-  if (!res.ok) throw new Error(res.statusText);
-  return res.json();
-}
 
 function Books() {
   const [page, setPage] = useState(1);
