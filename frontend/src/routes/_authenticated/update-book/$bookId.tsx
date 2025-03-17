@@ -1,3 +1,4 @@
+import { Book } from '@server/routes/books';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -8,41 +9,53 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import api from '@/lib/api/api';
+import { getBook } from '@/lib/api/bookApi';
 
-export const Route = createFileRoute('/_authenticated/add-book')({
-  component: AddBook,
+export const Route = createFileRoute('/_authenticated/update-book/$bookId')({
+  loader: async ({ params }) => {
+    try {
+      const res = await getBook(params.bookId);
+      return { book: (res as { data: Book }).data };
+    } catch {
+      return { book: null };
+    }
+  },
+  component: UpdateBookComponent,
 });
 
-function AddBook() {
+function UpdateBookComponent() {
+  const { book } = Route.useLoaderData();
   const navigate = useNavigate();
+
   const form = useForm({
     defaultValues: {
-      title: '',
-      category: '',
-      author: '',
-      publisher: '',
-      year: '',
-      isbn: '',
-      issn: '',
-      price: '',
-      notes: '',
+      title: book?.title ?? '',
+      category: book?.category ?? '',
+      author: book?.author ?? '',
+      publisher: book?.publisher ?? '',
+      year: book?.year.toString() ?? '',
+      isbn: book?.isbn ?? '',
+      issn: book?.issn ?? '',
+      price: book?.price.toString() ?? '',
+      notes: book?.notes ?? '',
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
-      const res = await api.books.$post({
+      const res = await api.books[':id{[0-9]+}'].$put({
         json: {
+          id: Number.parseInt(book?.id?.toString() ?? '0'),
           ...value,
           year: Number(value.year),
           price: Number(value.price),
         },
+        param: { id: book?.id ? String(book.id) : '0' },
       });
 
       if (!res.ok) {
-        alert('Failed to add book');
+        alert('Failed to update book');
         return;
       }
 
-      toast('Book added successfully');
+      toast('Book updated successfully');
       form.reset();
       navigate({ to: '/books' });
     },
@@ -72,7 +85,7 @@ function AddBook() {
         e.stopPropagation();
         form.handleSubmit();
       }}>
-      <h2 className="text-2xl font-bold">Add Book</h2>
+      <h2 className="text-2xl font-bold">Update Book</h2>
       {formItem.map((item) => (
         <form.Field key={item.name} name={item.name}>
           {(field) => (
@@ -104,7 +117,7 @@ function AddBook() {
       <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
         {([canSubmit, isSubmitting]) => (
           <Button type="submit" disabled={!canSubmit}>
-            {isSubmitting ? 'Submitting...' : 'Add Book'}
+            {isSubmitting ? 'Submitting...' : 'Update Book'}
           </Button>
         )}
       </form.Subscribe>

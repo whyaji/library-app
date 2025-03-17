@@ -19,6 +19,7 @@ import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index
 import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedBooksImport } from './routes/_authenticated/books'
 import { Route as AuthenticatedAddBookImport } from './routes/_authenticated/add-book'
+import { Route as AuthenticatedUpdateBookBookIdImport } from './routes/_authenticated/update-book/$bookId'
 
 // Create/Update Routes
 
@@ -68,6 +69,13 @@ const AuthenticatedAddBookRoute = AuthenticatedAddBookImport.update({
   path: '/add-book',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const AuthenticatedUpdateBookBookIdRoute =
+  AuthenticatedUpdateBookBookIdImport.update({
+    id: '/update-book/$bookId',
+    path: '/update-book/$bookId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -129,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/update-book/$bookId': {
+      id: '/_authenticated/update-book/$bookId'
+      path: '/update-book/$bookId'
+      fullPath: '/update-book/$bookId'
+      preLoaderRoute: typeof AuthenticatedUpdateBookBookIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -139,6 +154,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBooksRoute: typeof AuthenticatedBooksRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedUpdateBookBookIdRoute: typeof AuthenticatedUpdateBookBookIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -146,6 +162,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBooksRoute: AuthenticatedBooksRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedUpdateBookBookIdRoute: AuthenticatedUpdateBookBookIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -161,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/books': typeof AuthenticatedBooksRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/': typeof AuthenticatedIndexRoute
+  '/update-book/$bookId': typeof AuthenticatedUpdateBookBookIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -171,6 +189,7 @@ export interface FileRoutesByTo {
   '/books': typeof AuthenticatedBooksRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/': typeof AuthenticatedIndexRoute
+  '/update-book/$bookId': typeof AuthenticatedUpdateBookBookIdRoute
 }
 
 export interface FileRoutesById {
@@ -183,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated/books': typeof AuthenticatedBooksRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/update-book/$bookId': typeof AuthenticatedUpdateBookBookIdRoute
 }
 
 export interface FileRouteTypes {
@@ -196,6 +216,7 @@ export interface FileRouteTypes {
     | '/books'
     | '/profile'
     | '/'
+    | '/update-book/$bookId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
@@ -205,6 +226,7 @@ export interface FileRouteTypes {
     | '/books'
     | '/profile'
     | '/'
+    | '/update-book/$bookId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -215,6 +237,7 @@ export interface FileRouteTypes {
     | '/_authenticated/books'
     | '/_authenticated/profile'
     | '/_authenticated/'
+    | '/_authenticated/update-book/$bookId'
   fileRoutesById: FileRoutesById
 }
 
@@ -254,7 +277,8 @@ export const routeTree = rootRoute
         "/_authenticated/add-book",
         "/_authenticated/books",
         "/_authenticated/profile",
-        "/_authenticated/"
+        "/_authenticated/",
+        "/_authenticated/update-book/$bookId"
       ]
     },
     "/about": {
@@ -280,6 +304,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/": {
       "filePath": "_authenticated/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/update-book/$bookId": {
+      "filePath": "_authenticated/update-book/$bookId.tsx",
       "parent": "/_authenticated"
     }
   }

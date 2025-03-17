@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -29,13 +29,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getBooks } from '@/lib/api/bookApi';
+import { deleteBook, getBooks } from '@/lib/api/bookApi';
 
 export const Route = createFileRoute('/_authenticated/books')({
   component: Books,
 });
 
 function Books() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
@@ -132,9 +133,11 @@ function Books() {
       <Table>
         <TableHeader>
           <TableRow>
-            {['ID', 'Title', 'Author', 'ISBN', 'ISSN', 'Publisher', 'Year', 'Price'].map((head) => (
-              <TableHead key={head}>{head}</TableHead>
-            ))}
+            {['ID', 'Title', 'Author', 'ISBN', 'ISSN', 'Publisher', 'Year', 'Price', 'Action'].map(
+              (head) => (
+                <TableHead key={head}>{head}</TableHead>
+              )
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -158,6 +161,23 @@ function Books() {
                   <TableCell>{book.publisher}</TableCell>
                   <TableCell>{book.year}</TableCell>
                   <TableCell>{book.price}</TableCell>
+                  <TableCell className="flex flex-row gap-4">
+                    <Button
+                      variant="outline"
+                      className="w-20"
+                      onClick={() => navigate({ to: `/update-book/${book.id}` })}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-20"
+                      onClick={async () => {
+                        await deleteBook(String(book.id));
+                        window.location.reload();
+                      }}>
+                      Delete
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
         </TableBody>

@@ -19,7 +19,7 @@ const bookSchemaZod = z.object({
 
 const createPostSchema = bookSchemaZod.omit({ id: true });
 
-type Book = z.infer<typeof bookSchemaZod>;
+export type Book = z.infer<typeof bookSchemaZod>;
 
 const fakeBooks: Book[] = [
   {
@@ -78,7 +78,7 @@ export const booksRoute = new Hono()
     if (!book) {
       return c.notFound();
     }
-    return c.json({ book });
+    return c.json({ data: book });
   })
   .delete('/:id{[0-9]+}', (c) => {
     const id = parseInt(c.req.param('id'));
