@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import Cookies from 'js-cookie';
 
 import { Button } from '@/components/ui/button';
 import { userQueryOptions } from '@/lib/api/authApi';
@@ -20,6 +21,7 @@ const Onboard = () => {
 const Component = () => {
   const { user } = Route.useRouteContext();
   if (!user) {
+    Cookies.remove('auth_token');
     return <Onboard />;
   }
 

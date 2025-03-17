@@ -1,7 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
+import { count, eq, like } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
+import { db } from '../db/database.js';
+import { booksSchema } from '../db/schema/schema.js';
 import authMiddleware from '../middleware/jwt.js';
 
 const bookSchemaZod = z.object({
@@ -21,81 +24,74 @@ const createPostSchema = bookSchemaZod.omit({ id: true });
 
 export type Book = z.infer<typeof bookSchemaZod>;
 
-const fakeBooks: Book[] = [
-  {
-    id: 1,
-    title: 'Book 1',
-    category: 'Category 1',
-    publisher: 'Publisher 1',
-    isbn: '123-456-789',
-    issn: '987-654-321',
-    author: 'Author 1',
-    year: 2021,
-    price: 199000,
-    notes: 'This is a book',
-  },
-  {
-    id: 2,
-    category: 'Category 2',
-    title: 'Book 2',
-    publisher: 'Publisher 2',
-    isbn: '123-456-789',
-    issn: '987-654-321',
-    author: 'Author 2',
-    year: 2021,
-    price: 109900,
-    notes: 'This is a book',
-  },
-];
-
 export const booksRoute = new Hono()
-  // use authMiddleware to protect routes
   .use(authMiddleware)
-  .get('/', (c) => {
-    // params: search (string), page (number), limit (number)
-    const search = c.req.param('search');
-    const page = parseInt(c.req.param('page') ?? '1');
-    const limit = parseInt(c.req.param('limit') ?? '10');
-
+  .get('/', async (c) => {
+    const search = c.req.query('search');
+    const page = parseInt(c.req.query('page') ?? '1');
+    const limit = parseInt(c.req.query('limit') ?? '10');
     const offset = (page - 1) * limit;
-    const filteredBooks = search ? fakeBooks.filter((b) => b.title.includes(search)) : fakeBooks;
-    const books = filteredBooks.slice(offset, offset + limit);
 
-    return c.json({ data: books, total: filteredBooks.length });
+    console.log({ search, page, limit, offset });
+
+    // Base query
+    const query =
+      search && search !== ''
+        ? db
+            .select()
+            .from(booksSchema)
+            .where(like(booksSchema.title, `%${search}%`))
+        : db.select().from(booksSchema);
+
+    // Execute the query with pagination
+    const books = await query.limit(limit).offset(offset);
+
+    // Get total count of books (with search filter if applicable)
+    const totalQuery = db.select({ count: count() }).from(booksSchema);
+    if (search) {
+      totalQuery.where(like(booksSchema.title, `%${search}%`));
+    }
+    const total = await totalQuery;
+
+    return c.json({
+      data: books,
+      total: total[0].count,
+      totalPage: Math.ceil(total[0].count / limit),
+      page,
+      limit,
+    });
   })
-  .get('/total', (c) => {
-    return c.json({ total: fakeBooks.length });
+  .get('/total', async (c) => {
+    const total = await db.select({ count: count() }).from(booksSchema);
+    return c.json({ total: total[0].count });
   })
-  .post('/', zValidator('json', createPostSchema), (c) => {
+  .post('/', zValidator('json', createPostSchema), async (c) => {
     const book = c.req.valid('json');
-    const id = fakeBooks.length + 1;
-    fakeBooks.push({ id, ...book });
+    await db.insert(booksSchema).values(book);
     return c.json({ message: 'Book created' }, 201);
   })
-  .get('/:id{[0-9]+}', (c) => {
+  .get('/:id{[0-9]+}', async (c) => {
     const id = parseInt(c.req.param('id'));
-    const book = fakeBooks.find((b) => b.id === id);
-    if (!book) {
+    const book = await db.select().from(booksSchema).where(eq(booksSchema.id, id)).limit(1);
+    if (!book[0]) {
       return c.notFound();
     }
-    return c.json({ data: book });
+    return c.json({ data: book[0] });
   })
-  .delete('/:id{[0-9]+}', (c) => {
+  .delete('/:id{[0-9]+}', async (c) => {
     const id = parseInt(c.req.param('id'));
-    const index = fakeBooks.findIndex((b) => b.id === id);
-    if (index === -1) {
+    const deleted = await db.delete(booksSchema).where(eq(booksSchema.id, id));
+    if (!deleted) {
       return c.notFound();
     }
-    fakeBooks.splice(index, 1);
     return c.json({ message: 'Book deleted' });
   })
-  .put('/:id{[0-9]+}', zValidator('json', bookSchemaZod), (c) => {
+  .put('/:id{[0-9]+}', zValidator('json', bookSchemaZod), async (c) => {
     const id = parseInt(c.req.param('id'));
     const book = c.req.valid('json');
-    const index = fakeBooks.findIndex((b) => b.id === id);
-    if (index === -1) {
+    const updated = await db.update(booksSchema).set(book).where(eq(booksSchema.id, id));
+    if (!updated) {
       return c.notFound();
     }
-    fakeBooks[index] = book;
     return c.json({ message: 'Book updated' });
   });

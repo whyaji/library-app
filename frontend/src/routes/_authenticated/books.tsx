@@ -42,8 +42,6 @@ function Books() {
   const [search, setSearch] = useState('');
   const [tempSearch, setTempSearch] = useState('');
 
-  const totalPage = 10; // Replace this with the actual total number of pages from your API
-
   useEffect(() => {
     const timeout = setTimeout(() => {
       setSearch(tempSearch);
@@ -55,6 +53,8 @@ function Books() {
     queryKey: ['get-books', search, page, limit],
     queryFn: () => getBooks(search, page, limit),
   });
+
+  const totalPage = data?.totalPage ?? 0;
 
   if (error) return <div>Error: {error.message}</div>;
 
