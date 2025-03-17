@@ -5,12 +5,13 @@ import { z } from 'zod';
 const bookSchema = z.object({
   id: z.number().int().positive(),
   title: z.string().min(3),
-  publisher: z.string(),
-  isbn: z.string(),
-  issn: z.string(),
-  author: z.string(),
-  year: z.number(),
-  price: z.number(),
+  category: z.string().min(3),
+  publisher: z.string().min(3),
+  isbn: z.string().min(3),
+  issn: z.string().min(3),
+  author: z.string().min(3),
+  year: z.number().int().positive().min(1000).max(3000),
+  price: z.number().int().positive().min(0),
   notes: z.string().nullable(),
 });
 
@@ -22,30 +23,41 @@ const fakeBooks: Book[] = [
   {
     id: 1,
     title: 'Book 1',
+    category: 'Category 1',
     publisher: 'Publisher 1',
     isbn: '123-456-789',
     issn: '987-654-321',
     author: 'Author 1',
     year: 2021,
-    price: 10.99,
+    price: 199000,
     notes: 'This is a book',
   },
   {
     id: 2,
+    category: 'Category 2',
     title: 'Book 2',
     publisher: 'Publisher 2',
     isbn: '123-456-789',
     issn: '987-654-321',
     author: 'Author 2',
     year: 2021,
-    price: 10.99,
+    price: 109900,
     notes: 'This is a book',
   },
 ];
 
 export const booksRoute = new Hono()
   .get('/', (c) => {
-    return c.json({ books: fakeBooks });
+    // params: search (string), page (number), limit (number)
+    const search = c.req.param('search');
+    const page = parseInt(c.req.param('page') ?? '1');
+    const limit = parseInt(c.req.param('limit') ?? '10');
+
+    const offset = (page - 1) * limit;
+    const filteredBooks = search ? fakeBooks.filter((b) => b.title.includes(search)) : fakeBooks;
+    const books = filteredBooks.slice(offset, offset + limit);
+
+    return c.json({ data: books, total: filteredBooks.length });
   })
   .get('/total', (c) => {
     return c.json({ total: fakeBooks.length });
