@@ -45,6 +45,7 @@ function Books() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setSearch(tempSearch);
+      setPage(1);
     }, 500);
     return () => clearTimeout(timeout);
   }, [tempSearch]);

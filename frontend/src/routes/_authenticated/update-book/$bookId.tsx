@@ -1,4 +1,3 @@
-import { Book } from '@server/routes/books';
 import { useForm } from '@tanstack/react-form';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -8,14 +7,13 @@ import { FieldInfo } from '@/components/ui/field-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import api from '@/lib/api/api';
-import { getBook } from '@/lib/api/bookApi';
+import { getBook, updateBook } from '@/lib/api/bookApi';
 
 export const Route = createFileRoute('/_authenticated/update-book/$bookId')({
   loader: async ({ params }) => {
     try {
       const res = await getBook(params.bookId);
-      return { book: (res as { data: Book }).data };
+      return { book: res.data };
     } catch {
       return { book: null };
     }
@@ -40,24 +38,23 @@ function UpdateBookComponent() {
       notes: book?.notes ?? '',
     },
     onSubmit: async ({ value }) => {
-      const res = await api.books[':id{[0-9]+}'].$put({
-        json: {
-          id: Number.parseInt(book?.id?.toString() ?? '0'),
+      try {
+        if (!book) {
+          alert('Book not found');
+          return;
+        }
+        await updateBook({
+          id: Number.parseInt(book.id.toString()),
           ...value,
           year: Number(value.year),
           price: Number(value.price),
-        },
-        param: { id: book?.id ? String(book.id) : '0' },
-      });
-
-      if (!res.ok) {
+        });
+        toast('Book updated successfully');
+        form.reset();
+        navigate({ to: '/books' });
+      } catch {
         alert('Failed to update book');
-        return;
       }
-
-      toast('Book updated successfully');
-      form.reset();
-      navigate({ to: '/books' });
     },
   });
 

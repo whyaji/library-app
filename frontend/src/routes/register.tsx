@@ -39,7 +39,7 @@ function Register() {
   }[] = [
     { name: 'name', label: 'Name', type: 'text' },
     { name: 'email', label: 'Email', type: 'text' },
-    { name: 'password', label: 'Password', type: 'text' },
+    { name: 'password', label: 'Password', type: 'password' },
   ];
 
   return (

@@ -7,7 +7,7 @@ import { FieldInfo } from '@/components/ui/field-info';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import api from '@/lib/api/api';
+import { createBook } from '@/lib/api/bookApi';
 
 export const Route = createFileRoute('/_authenticated/add-book')({
   component: AddBook,
@@ -28,23 +28,18 @@ function AddBook() {
       notes: '',
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
-      const res = await api.books.$post({
-        json: {
+      try {
+        await createBook({
           ...value,
           year: Number(value.year),
           price: Number(value.price),
-        },
-      });
-
-      if (!res.ok) {
+        });
+        toast('Book added successfully');
+        form.reset();
+        navigate({ to: '/books' });
+      } catch {
         alert('Failed to add book');
-        return;
       }
-
-      toast('Book added successfully');
-      form.reset();
-      navigate({ to: '/books' });
     },
   });
 

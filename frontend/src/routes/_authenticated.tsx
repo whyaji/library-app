@@ -28,7 +28,6 @@ const Component = () => {
   return <Outlet />;
 };
 
-// src/routes/_authenticated.tsx
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
